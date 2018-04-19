@@ -24,12 +24,18 @@ if [ -z "${SSH_USERHOST}" ] ; then echo "ERROR - SSH_OPTS not set in environment
 if [ "${#*}" -lt 1 ] || [ -z "${1}" ] ; then echo "ERROR - usage ${0} CMD ..." ; exit 1 ; fi
 if [ -z ${JOB_NAME} ]; then JOB_NAME=ssh-nohup; fi
 
+readonly DEBUG_LOG=$(mktemp -t XXXssh-nohup)
+
 debug() {
   local str=$1
   if [ "${DEBUG}" = "true" ]; then 
-    echo "### ssh-nohup: ${str}" 
+    echo "### ssh-nohup: ${str}"
+    echo "### ssh-nohup: ${str}" >> ${DEBUG_LOG}
   fi
 }
+
+debug "DEBUG_LOG = ${DEBUG_LOG}"
+debug "SCRIPT_PID = ${$}"
 
 readonly CMD=${*}
 readonly EXEC_WRAPPER=$(dirname ${0})/exec-wrapper.sh
@@ -56,14 +62,15 @@ PID=`ssh ${SSH_OPTS} ${SSH_USERHOST} "bash ${REMOTE_TMP_DIR}/nohup-wrapper.sh ${
 debug "Remote PID of ssh nohup-wrapper = ${PID}"
 
 print_children_pids(){
-  ps -e | grep ${1} | awk '{print $1}' | grep -v ${PPID} | grep -v ${1} | sort | uniq | tr '\n' ' '
+  ps -ef | awk '{print $2" "$3}' | grep ${1} | awk '{print $1}' | grep -v ${PPID} | grep -v ${1} | sort | uniq | tr '\n' ' '
 }
 
 remote_print_children_pids(){
-  ssh ${SSH_OPTS} ${SSH_USERHOST} "ps -e" | grep ${1} | awk '{print $1}' | grep -v ${PPID} | grep -v ${1} | sort | uniq | tr '\n' ' '
+  ssh ${SSH_OPTS} ${SSH_USERHOST} "ps -ef" | awk '{print $2" "$3}' | grep ${1} | awk '{print $1}' | grep -v ${1} | sort | uniq | tr '\n' ' '
 }
 
 trap_handler(){
+  debug "trap_handler - self=${$}"
 
   # kill remote pids
   local remote_pids=`remote_print_children_pids ${PID}`
@@ -107,9 +114,10 @@ trap "exit_handler" EXIT
 
 # tail the remote process output in a subshell in the background
 (
+  set +e
   while true ; do 
-  debug "start tail-wrapper"
-  ssh -q ${SSH_OPTS} ${SSH_USERHOST} "bash ${REMOTE_TMP_DIR}/tail-wrapper.sh ${PID} ${LOG}" || true
+    debug "start tail-wrapper - self=${$}"
+    ssh -q ${SSH_OPTS} ${SSH_USERHOST} "bash ${REMOTE_TMP_DIR}/tail-wrapper.sh ${PID} ${LOG}" || true
   done
 ) &
 TAIL_LOOP_PID=${!}
