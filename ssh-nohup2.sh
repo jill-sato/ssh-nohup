@@ -24,10 +24,13 @@ if [ -z "${SSH_USERHOST}" ] ; then echo "ERROR - SSH_OPTS not set in environment
 if [ "${#*}" -lt 1 ] || [ -z "${1}" ] ; then echo "ERROR - usage ${0} CMD ..." ; exit 1 ; fi
 if [ -z ${JOB_NAME} ]; then JOB_NAME=ssh-nohup; fi
 
+readonly DEBUG_LOG=$(mktemp -t XXX${0})
+
 debug() {
   local str=$1
   if [ "${DEBUG}" = "true" ]; then 
-    echo "### ssh-nohup: ${str}" 
+    echo "### ssh-nohup: ${str}"
+    echo "### ssh-nohup: ${str}" >> ${DEBUG_LOG}
   fi
 }
 
