@@ -70,7 +70,7 @@ remote_print_children_pids(){
 }
 
 trap_handler(){
-  debug "trap_handler - PID = ${$}"
+  debug "trap_handler - self=${$}"
 
   # kill remote pids
   local remote_pids=`remote_print_children_pids ${PID}`
@@ -114,9 +114,10 @@ trap "exit_handler" EXIT
 
 # tail the remote process output in a subshell in the background
 (
+  set +e
   while true ; do 
-  debug "start tail-wrapper"
-  ssh -q ${SSH_OPTS} ${SSH_USERHOST} "bash ${REMOTE_TMP_DIR}/tail-wrapper.sh ${PID} ${LOG}" || true
+    debug "start tail-wrapper - self=${$}"
+    ssh -q ${SSH_OPTS} ${SSH_USERHOST} "bash ${REMOTE_TMP_DIR}/tail-wrapper.sh ${PID} ${LOG}" || true
   done
 ) &
 TAIL_LOOP_PID=${!}
