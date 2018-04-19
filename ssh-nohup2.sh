@@ -35,6 +35,7 @@ debug() {
 }
 
 debug "DEBUG_LOG = ${DEBUG_LOG}"
+debug "SCRIPT_PID = ${$}"
 
 readonly CMD=${*}
 readonly EXEC_WRAPPER=$(dirname ${0})/exec-wrapper.sh
@@ -69,6 +70,7 @@ remote_print_children_pids(){
 }
 
 trap_handler(){
+  debug "trap_handler - PID = ${$}"
 
   # kill remote pids
   local remote_pids=`remote_print_children_pids ${PID}`
