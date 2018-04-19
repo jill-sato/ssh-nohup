@@ -62,11 +62,11 @@ PID=`ssh ${SSH_OPTS} ${SSH_USERHOST} "bash ${REMOTE_TMP_DIR}/nohup-wrapper.sh ${
 debug "Remote PID of ssh nohup-wrapper = ${PID}"
 
 print_children_pids(){
-  ps -ef | awk '{print $2 $3}' | grep ${1} | awk '{print $1}' | grep -v ${PPID} | grep -v ${1} | sort | uniq | tr '\n' ' '
+  ps -ef | awk '{print $2" "$3}' | grep ${1} | awk '{print $1}' | grep -v ${PPID} | grep -v ${1} | sort | uniq | tr '\n' ' '
 }
 
 remote_print_children_pids(){
-  ssh ${SSH_OPTS} ${SSH_USERHOST} "ps -ef" | awk '{print $2 $3}' | grep ${1} | awk '{print $1}' | grep -v ${1} | sort | uniq | tr '\n' ' '
+  ssh ${SSH_OPTS} ${SSH_USERHOST} "ps -ef" | awk '{print $2" "$3}' | grep ${1} | awk '{print $1}' | grep -v ${1} | sort | uniq | tr '\n' ' '
 }
 
 trap_handler(){
