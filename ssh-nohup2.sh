@@ -1,26 +1,22 @@
 #!/bin/bash -e
 
+trap 'echo "[ERROR] Error occurred at $BASH_SOURCE:$LINENO command: $BASH_COMMAND"' ERR
+
 # Set true or false
 DEBUG=true
 
 # TODO add script arguments for
 #        - command to run
-#        - ssh_opts
-#        - ssh_user
-#        - ssh_host
 #        - verbose
 #        - debug
 #        - usage (-h)
 
 # TODO
-# wrap scp and ssh commands into bash functions
-# and handle resiliency (mktemp, scp, ps, kill)
-
-# TODO
 # change debug message to use ${0} for the script name (rather than hardcoded remote_spawn)
 
+# TODO
+
 if [ -z "${SSH_OPTS}" ] ; then echo "ERROR - SSH_OPTS not set in environment" ; exit 1 ; fi
-if [ -z "${SSH_USERHOST}" ] ; then echo "ERROR - SSH_OPTS not set in environment" ; exit 1 ; fi
 if [ "${#*}" -lt 1 ] || [ -z "${1}" ] ; then echo "ERROR - usage ${0} CMD ..." ; exit 1 ; fi
 if [ -z ${JOB_NAME} ]; then JOB_NAME=ssh-nohup; fi
 
@@ -81,7 +77,6 @@ trap_handler(){
   local pids=`print_children_pids ${$}`
   pids="${pids} `print_children_pids ${TAIL_LOOP_PID}`"
   debug "trap_handler - local pids=${pids}; TAIL_LOOP_PID=${TAIL_LOOP_PID} self=${$}"
-  #pids="${pids} ${TAIL_LOOP_PID} ${$}"
   pids="${pids} ${TAIL_LOOP_PID} "
   debug "trap_handler - local kill -9: ${pids}"
   kill -9 ${pids} > /tmp/k2 2>&1 || true
@@ -128,8 +123,11 @@ while true
 do
   retries=0
   while [ ${retries} -lt 10 ] ; do
+    set +e
     isalive=`ssh -q ${SSH_OPTS} ${SSH_USERHOST} "ps --no-headers ${PID} | wc -l"`
-    if [ ${PIPESTATUS[0]} -eq 0 ] ; then break ; fi
+    isalive_status=${PIPESTATUS[0]}
+    set -e
+    if [ ${isalive_status} -eq 0 ] ; then break ; fi
     if [ ${retries} -eq 9 ] ; then
       # abort since unable to determine liveliness of the process
       # print some error message and exit
