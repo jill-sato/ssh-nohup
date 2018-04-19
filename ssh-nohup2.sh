@@ -34,6 +34,8 @@ debug() {
   fi
 }
 
+debug "DEBUG_LOG = ${DEBUG_LOG}"
+
 readonly CMD=${*}
 readonly EXEC_WRAPPER=$(dirname ${0})/exec-wrapper.sh
 readonly NOHUP_WRAPPER=$(dirname ${0})/nohup-wrapper.sh
