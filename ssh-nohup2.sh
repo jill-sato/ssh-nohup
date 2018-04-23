@@ -79,12 +79,19 @@ trap_handler(){
   debug "trap_handler - local pids=${pids}; TAIL_LOOP_PID=${TAIL_LOOP_PID} self=${$}"
   pids="${pids} ${TAIL_LOOP_PID} "
   debug "trap_handler - local kill -9: ${pids}"
-  kill -9 ${pids} > /tmp/k2 2>&1 || true
+  kill ${pids} > /tmp/k2 2>&1 || true
+  # using this causes exit 143
+  #wait ${TAIL_LOOP_PID}
 
   # uncomment later for clean hup
   #rm -rf ${REMOTE_TMP_DIR}
   # remove log file and status file
   #ssh ${SSH_OPTS} ${SSH_USERHOST} "bash -c 'rm -f ${LOG} ${STATUS_FILE}'"
+
+  # clean up debug log if debug not set. 
+  if [ "${DEBUG}" = "false" ]; then 
+    rm -f ${DEBUG_LOG}
+  fi
 }
 term_handler() {
   debug "term_handler"
