@@ -118,8 +118,10 @@ trap "exit_handler" EXIT
 (
   set +e
   while true ; do 
+    FIRST=true
     debug "start tail-wrapper - self=${$}"
-    ssh -q ${SSH_OPTS} ${SSH_USERHOST} "bash ${REMOTE_TMP_DIR}/tail-wrapper.sh ${PID} ${LOG}" || true
+    ssh -q ${SSH_OPTS} ${SSH_USERHOST} "bash ${REMOTE_TMP_DIR}/tail-wrapper.sh ${PID} ${LOG} ${FIRST}" || true
+    FIRST=false
   done
 ) &
 TAIL_LOOP_PID=${!}
