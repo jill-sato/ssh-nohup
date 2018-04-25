@@ -83,15 +83,11 @@ trap_handler(){
   # using this causes exit 143
   #wait ${TAIL_LOOP_PID}
 
-  # uncomment later for clean hup
-  #rm -rf ${REMOTE_TMP_DIR}
-  # remove log file and status file
-  #ssh ${SSH_OPTS} ${SSH_USERHOST} "bash -c 'rm -f ${LOG} ${STATUS_FILE}'"
+  # uncomment later for clean up
+  #ssh ${SSH_OPTS} ${SSH_USERHOST} "rm -rf ${REMOTE_TMP_DIR}"
 
-  # clean up debug log if debug not set. 
-  if [ "${DEBUG}" = "false" ]; then 
-    rm -f ${DEBUG_LOG}
-  fi
+  # clean up debug log
+  rm -f ${DEBUG_LOG}
 }
 term_handler() {
   debug "term_handler"
@@ -153,6 +149,9 @@ do
     break;
   fi
 done
+
+# clean up debug log
+rm -f ${DEBUG_LOG}
 
 debug "retrieving exit code"
 EXIT_CODE=`ssh ${SSH_OPTS} ${SSH_USERHOST} "cat ${STATUS_FILE}"`

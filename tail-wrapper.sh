@@ -11,6 +11,7 @@ DEBUG=true
 
 readonly PID=${1}
 readonly LOG=${2}
+readonly FIRST=${3}
 readonly DEBUG_LOG=$(mktemp -t XXXtail-wrapper)
 
 debug() {
@@ -24,7 +25,12 @@ debug() {
 debug "DEBUG_LOG = ${DEBUG_LOG}"
 debug "PID to tail on = ${PID}"
 
-tail -f ${LOG} &
+# If first tail on file, then make sure we tail from beginning with -b
+if [ "${FIRST}" = "true" ]; then
+  tail -f ${LOG} -n 10000 &
+else
+  tail -f ${LOG} &
+fi
 TAIL_PID=${!}
 debug "TAIL_PID = ${TAIL_PID}"
 
@@ -32,10 +38,8 @@ trap_handler(){
   debug "trap_handler - kill -9 TAIL_PID=${TAIL_PID}"
   kill -9 ${TAIL_PID}  > /dev/null 2>&1 || true
 
-  # clean up debug log if debug not set. 
-  if [ "${DEBUG}" = "false" ]; then 
-    rm -f ${DEBUG_LOG}
-  fi
+  # clean up debug log 
+  rm -f ${DEBUG_LOG}
 
   exit 0
 }
@@ -51,10 +55,8 @@ debug "Outside while loop because PID $PID is no longer running"
 
 debug "kill -9 TAIL_PID=${TAIL_PID}"
 kill -9 ${TAIL_PID}  > /dev/null 2>&1 || true
-# clean up debug log if debug not set. 
-if [ "${DEBUG}" = "false" ]; then 
-  rm -f ${DEBUG_LOG}
-fi
+# clean up debug log
+rm -f ${DEBUG_LOG}
 
 # Sleep or the ssh tail lop in ssh-nohup will keep tailing output.
 sleep 10
